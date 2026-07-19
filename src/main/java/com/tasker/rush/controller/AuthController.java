@@ -1,42 +1,32 @@
 package com.tasker.rush.controller;
 
-import com.tasker.rush.dto.auth.LoginRequest;
-import com.tasker.rush.dto.auth.LoginResponse;
-import com.tasker.rush.security.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
-import java.util.Objects;
-
-@RestController
-@RequestMapping("/auth")
+@Controller
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
 
-    @Autowired
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-    }
+    // GET /login just renders the form. The actual POST /login submission
+    // is intercepted and handled entirely by Spring Security's formLogin
+    // filter (see SecurityConfig) — no controller code needed for that part.
+    @GetMapping("/login")
+    public String loginPage(
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "logout", required = false) String logout,
+            @RequestParam(value = "expired", required = false) String expired,
+            Model model) {
 
-    @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.username(),
-                        request.password()
-                )
-        );
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token =  jwtService.generateToken(Objects.requireNonNull(userDetails));
-        return new LoginResponse(token);
+        if (error != null) {
+            model.addAttribute("errorMessage", "Invalid username or password.");
+        }
+        if (logout != null) {
+            model.addAttribute("infoMessage", "You have been logged out.");
+        }
+        if (expired != null) {
+            model.addAttribute("infoMessage", "Your session expired. Please log in again.");
+        }
+        return "login";
     }
 }

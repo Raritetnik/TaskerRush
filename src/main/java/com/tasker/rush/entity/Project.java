@@ -3,10 +3,12 @@ package com.tasker.rush.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "tasks")
-public class Task {
+@Table(name = "projects")
+public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,27 +24,19 @@ public class Task {
     @Column(
             name = "description",
             nullable = false,
-            columnDefinition = "TEXT"
+            length = 500
     )
     private String description = "";
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name = "project_id",
+            name = "user_id",
             nullable = false,
             foreignKey = @ForeignKey(
-                    name = "fk_task_project"
+                    name = "fk_projects_user"
             )
     )
-    private Project project;
-
-    @Enumerated(EnumType.STRING)
-    @Column(
-            name = "status",
-            nullable = false,
-            length = 20
-    )
-    private TaskStatus status = TaskStatus.PENDING;
+    private User user;
 
     @Column(
             name = "created_date",
@@ -51,24 +45,24 @@ public class Task {
     )
     private LocalDateTime createdDate;
 
-    @Column(name = "deadline_date")
-    private LocalDateTime deadlineDate;
+    @OneToMany(
+            mappedBy = "project",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Task> tasks = new ArrayList<>();
 
-    public Task() {
+    public Project() {
     }
 
-    public Task(
+    public Project(
             String title,
             String description,
-            Project project,
-            TaskStatus status,
-            LocalDateTime deadlineDate
+            User user
     ) {
         this.title = title;
         this.description = description;
-        this.project = project;
-        this.status = status;
-        this.deadlineDate = deadlineDate;
+        this.user = user;
     }
 
     @PrePersist
@@ -81,13 +75,19 @@ public class Task {
             description = "";
         }
 
-        if (status == null) {
-            status = TaskStatus.PENDING;
-        }
-
         if (createdDate == null) {
             createdDate = LocalDateTime.now();
         }
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setProject(this);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setProject(null);
     }
 
     public Long getId() {
@@ -114,20 +114,12 @@ public class Task {
         this.description = description;
     }
 
-    public Project getProject() {
-        return project;
+    public User getUser() {
+        return user;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -138,11 +130,11 @@ public class Task {
         this.createdDate = createdDate;
     }
 
-    public LocalDateTime getDeadlineDate() {
-        return deadlineDate;
+    public List<Task> getTasks() {
+        return tasks;
     }
 
-    public void setDeadlineDate(LocalDateTime deadlineDate) {
-        this.deadlineDate = deadlineDate;
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
     }
 }

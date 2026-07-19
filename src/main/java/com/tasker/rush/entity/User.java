@@ -37,7 +37,7 @@ public class User implements UserDetails {
 
     @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Task> tasks; // Связь с задачами, ленивый (lazy) фечинг
+    private List<Project> projects; // Связь с задачами, ленивый (lazy) фечинг
 
 
     /**
