@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title th:text="${selectedProject != null and selectedProject.title != null
         ? selectedProject.title + ' | Tasker'
@@ -10,324 +11,218 @@
         Tasker
     </title>
 
-    <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
 
-    <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
-    <link rel="stylesheet" th:href="@{/css/task-board.css}">
+    <link rel="stylesheet" th:href="@{/css/task-board.css}" />
 </head>
 
 <body>
+    <div class="tasker-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="tasker-layout">
+        <aside class="project-sidebar" id="projectSidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">
+                    <i class="bi bi-check2-square"></i>
+                </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <aside class="project-sidebar" id="projectSidebar">
-
-        <div class="sidebar-header">
-            <div class="brand-icon">
-                <i class="bi bi-check2-square"></i>
+                <div>
+                    <h1 class="brand-title">Tasker</h1>
+                    <span class="brand-subtitle">Project workspace</span>
+                </div>
             </div>
 
-            <div>
-                <h1 class="brand-title">Tasker</h1>
-                <span class="brand-subtitle">Project workspace</span>
-            </div>
-        </div>
+            <div class="sidebar-section-title">Projects</div>
 
-        <div class="sidebar-section-title">
-            Projects
-        </div>
-
-        <nav class="project-navigation">
-
-            <a
-                    class="project-link"
-                    th:each="project : ${projects != null ? projects : {}}"
-                    th:href="@{/dashboard/{id}(id=${project.id})}"
-                    th:classappend="${selectedProject != null
+            <nav class="project-navigation">
+                <a class="project-link" th:each="project : ${projects != null ? projects : {}}"
+                    th:href="@{/dashboard/{id}(id=${project.id})}" th:classappend="${selectedProject != null
                     and project != null
                     and project.id != null
                     and selectedProject.id != null
                     and project.id == selectedProject.id}
                     ? ' active'
-                    : ''"
-            >
-                <i class="bi bi-folder2"></i>
+                    : ''">
+                    <i class="bi bi-folder2"></i>
 
-                <span
-                        th:text="${project != null
+                    <span th:text="${project != null
                         and project.title != null
                         and !#strings.isEmpty(project.title)
                         ? project.title
-                        : 'Unnamed project'}"
-                >
-                    Project title
-                </span>
-            </a>
-
-            <div
-                    class="sidebar-empty-state"
-                    th:if="${projects == null or #lists.isEmpty(projects)}"
-            >
-                <i class="bi bi-folder-x"></i>
-                <span>No projects yet</span>
-            </div>
-
-        </nav>
-
-        <button class="new-project-button" type="button">
-            <i class="bi bi-plus-lg"></i>
-            New project
-        </button>
-
-    </aside>
-
-    <main class="board-main">
-
-        <header class="board-toolbar">
-
-            <div class="project-heading">
-
-                <button
-                        class="sidebar-toggle"
-                        id="sidebarToggle"
-                        type="button"
-                        aria-label="Toggle sidebar"
-                >
-                    <i class="bi bi-list"></i>
-                </button>
-
-                <div>
-                    <span
-                            class="project-label"
-                            th:text="${selectedProject != null ? 'Project' : 'Workspace'}"
-                    >
-                        Project
+                        : 'Unnamed project'}">
+                        Project title
                     </span>
+                </a>
 
-                    <h2
-                            th:text="${selectedProject != null
+                <div class="sidebar-empty-state" th:if="${projects == null or #lists.isEmpty(projects)}">
+                    <i class="bi bi-folder-x"></i>
+                    <span>No projects yet</span>
+                </div>
+            </nav>
+
+            <button class="new-project-button" type="button">
+                <i class="bi bi-plus-lg"></i>
+                New project
+            </button>
+        </aside>
+
+        <main class="board-main">
+            <header class="board-toolbar">
+                <div class="project-heading">
+                    <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+
+                    <div>
+                        <span class="project-label" th:text="${selectedProject != null ? 'Project' : 'Workspace'}">
+                            Project
+                        </span>
+
+                        <h2 th:text="${selectedProject != null
                             and selectedProject.title != null
                             and !#strings.isEmpty(selectedProject.title)
                             ? selectedProject.title
-                            : 'Select a project'}"
-                    >
-                        Select a project
-                    </h2>
+                            : 'Select a project'}">
+                            Select a project
+                        </h2>
+                    </div>
                 </div>
 
-            </div>
+                <div class="toolbar-actions">
+                    <div class="task-search">
+                        <i class="bi bi-search"></i>
 
-            <div class="toolbar-actions">
-
-                <div class="task-search">
-                    <i class="bi bi-search"></i>
-
-                    <input
-                            id="taskSearch"
-                            type="search"
-                            placeholder="Search tasks..."
-                            autocomplete="off"
-                            th:disabled="${selectedProject == null}"
-                    >
-                </div>
-
-                <button
-                        type="button"
-                        class="add-task-button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addTaskModal"
-                        th:disabled="${selectedProject == null}"
-                >
-                    <i class="bi bi-plus-lg"></i>
-                    Add task
-                </button>
-
-            </div>
-
-        </header>
-
-        <section
-                class="workspace-empty-state"
-                th:if="${selectedProject == null}"
-        >
-            <div class="workspace-empty-icon">
-                <i class="bi bi-folder-plus"></i>
-            </div>
-
-            <h2>No project selected</h2>
-
-            <p>
-                Select or create a project to start organizing your tasks.
-            </p>
-        </section>
-
-        <section
-                class="kanban-board"
-                th:if="${selectedProject != null}"
-        >
-
-            <!-- TO DO -->
-            <div class="task-column" data-column-status="TO_DO">
-
-                <div class="column-header">
-
-                    <div class="column-title-wrapper">
-                        <span class="status-dot todo-dot"></span>
-                        <h3>TO DO</h3>
+                        <input id="taskSearch" type="search" placeholder="Search tasks..." autocomplete="off"
+                            th:disabled="${selectedProject == null}" />
                     </div>
 
-                    <span
-                            class="task-count"
-                            th:text="${todoTasks != null ? #lists.size(todoTasks) : 0}"
-                    >
-                        0
-                    </span>
+                    <button type="button" class="add-task-button" data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                        th:disabled="${selectedProject == null}">
+                        <i class="bi bi-plus-lg"></i>
+                        Add task
+                    </button>
+                </div>
+            </header>
 
+            <section class="workspace-empty-state" th:if="${selectedProject == null}">
+                <div class="workspace-empty-icon">
+                    <i class="bi bi-folder-plus"></i>
                 </div>
 
-                <div class="task-list">
+                <h2>No project selected</h2>
 
-                    <article
-                            class="task-card"
-                            th:each="task : ${todoTasks != null ? todoTasks : {}}"
-                            th:attr="
-                            data-task-title=${task != null and task.title != null ? task.title : ''},
-                            data-task-description=${task != null and task.description != null ? task.description : ''}
-                        "
-                    >
+                <p>Select or create a project to start organizing your tasks.</p>
+            </section>
 
-                        <div class="task-card-header">
-
-                            <button
-                                    class="task-menu-button"
-                                    type="button"
-                                    aria-label="Task options"
-                            >
-                                <i class="bi bi-three-dots"></i>
-                            </button>
-
+            <section class="kanban-board" th:if="${selectedProject != null}">
+                <!-- TO DO -->
+                <div class="task-column" data-column-status="TO_DO">
+                    <div class="column-header">
+                        <div class="column-title-wrapper">
+                            <span class="status-dot todo-dot"></span>
+                            <h3>TO DO</h3>
                         </div>
 
-                        <h4
-                                th:text="${task != null
-                                and task.title != null
-                                and !#strings.isEmpty(task.title)
-                                ? task.title
-                                : 'Untitled task'}"
-                        >
-                            Untitled task
-                        </h4>
+                        <span class="task-count" th:text="${todoTasks != null ? #lists.size(todoTasks) : 0}">
+                            0
+                        </span>
+                    </div>
 
-                        <p
-                                th:text="${task != null
-                                and task.description != null
-                                and !#strings.isEmpty(task.description)
-                                ? task.description
-                                : 'No description provided.'}"
-                        >
-                            No description provided.
-                        </p>
-
-                        <div class="task-card-footer">
-
-                            <div class="task-avatar">
-                                <i class="bi bi-person"></i>
+                    <div class="task-list">
+                        <article class="task-card" th:each="task : ${todoTasks != null ? todoTasks : {}}" th:attr="
+                                data-task-id=${task.id},
+                                data-task-title=${task.title != null ? task.title : ''},
+                                data-task-description=${task.description != null ? task.description : ''},
+                                data-task-status=${task.status != null ? task.status : 'PENDING'}
+                            ">
+                            <div class="task-card-header">
+                                <button class="task-menu-button" type="button" aria-label="Task options">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
                             </div>
 
-                            <span>
-                                <i class="bi bi-calendar3"></i>
-                                To do
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                    <div
-                            class="empty-column"
-                            th:if="${todoTasks == null or #lists.isEmpty(todoTasks)}"
-                    >
-                        <i class="bi bi-inbox"></i>
-                        <span>No tasks</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- IN PROCESS -->
-            <div class="task-column" data-column-status="IN_PROGRESS">
-
-                <div class="column-header">
-
-                    <div class="column-title-wrapper">
-                        <span class="status-dot progress-dot"></span>
-                        <h3>IN PROCESS</h3>
-                    </div>
-
-                    <span
-                            class="task-count"
-                            th:text="${inProgressTasks != null
-                            ? #lists.size(inProgressTasks)
-                            : 0}"
-                    >
-                        0
-                    </span>
-
-                </div>
-
-                <div class="task-list">
-
-                    <article
-                            class="task-card"
-                            th:each="task : ${inProgressTasks != null ? inProgressTasks : {}}"
-                            th:attr="
-                            data-task-title=${task != null and task.title != null ? task.title : ''},
-                            data-task-description=${task != null and task.description != null ? task.description : ''}
-                        "
-                    >
-
-                        <div class="task-card-header">
-
-                            <button
-                                    class="task-menu-button"
-                                    type="button"
-                                    aria-label="Task options"
-                            >
-                                <i class="bi bi-three-dots"></i>
-                            </button>
-
-                        </div>
-
-                        <h4
-                                th:text="${task != null
+                            <h4 th:text="${task != null
                                 and task.title != null
                                 and !#strings.isEmpty(task.title)
                                 ? task.title
-                                : 'Untitled task'}"
-                        >
-                            Untitled task
-                        </h4>
+                                : 'Untitled task'}">
+                                Untitled task
+                            </h4>
 
-                        <p
-                                th:text="${task != null
+                            <p th:text="${task != null
                                 and task.description != null
                                 and !#strings.isEmpty(task.description)
                                 ? task.description
-                                : 'No description provided.'}"
-                        >
-                            No description provided.
-                        </p>
-                        <!--
+                                : 'No description provided.'}">
+                                No description provided.
+                            </p>
+
+                            <div class="task-card-footer">
+                                <div class="task-avatar">
+                                    <i class="bi bi-person"></i>
+                                </div>
+
+                                <span>
+                                    <i class="bi bi-calendar3"></i>
+                                    To do
+                                </span>
+                            </div>
+                        </article>
+
+                        <div class="empty-column" th:if="${todoTasks == null or #lists.isEmpty(todoTasks)}">
+                            <i class="bi bi-inbox"></i>
+                            <span>No tasks</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IN PROCESS -->
+                <div class="task-column" data-column-status="IN_PROGRESS">
+                    <div class="column-header">
+                        <div class="column-title-wrapper">
+                            <span class="status-dot progress-dot"></span>
+                            <h3>IN PROCESS</h3>
+                        </div>
+
+                        <span class="task-count" th:text="${inProgressTasks != null
+                            ? #lists.size(inProgressTasks)
+                            : 0}">
+                            0
+                        </span>
+                    </div>
+
+                    <div class="task-list">
+                        <article class="task-card" th:each="task : ${inProgressTasks != null ? inProgressTasks : {}}"
+                            th:attr="
+                                data-task-id=${task.id},
+                                data-task-title=${task.title != null ? task.title : ''},
+                                data-task-description=${task.description != null ? task.description : ''},
+                                data-task-status=${task.status != null ? task.status : 'PENDING'}
+                            ">
+                            <div class="task-card-header">
+                                <button class="task-menu-button" type="button" aria-label="Task options">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                            </div>
+
+                            <h4 th:text="${task != null
+                                and task.title != null
+                                and !#strings.isEmpty(task.title)
+                                ? task.title
+                                : 'Untitled task'}">
+                                Untitled task
+                            </h4>
+
+                            <p th:text="${task != null
+                                and task.description != null
+                                and !#strings.isEmpty(task.description)
+                                ? task.description
+                                : 'No description provided.'}">
+                                No description provided.
+                            </p>
+                            <!--
                         <div class="task-progress">
 
                             <div class="task-progress-label">
@@ -349,275 +244,241 @@
                         </div>
                         -->
 
-                        <div class="task-card-footer">
+                            <div class="task-card-footer">
+                                <div class="task-avatar">
+                                    <i class="bi bi-person"></i>
+                                </div>
 
-                            <div class="task-avatar">
-                                <i class="bi bi-person"></i>
+                                <span>
+                                    <i class="bi bi-clock"></i>
+                                    In process
+                                </span>
+                            </div>
+                        </article>
+
+                        <div class="empty-column" th:if="${inProgressTasks == null or #lists.isEmpty(inProgressTasks)}">
+                            <i class="bi bi-inbox"></i>
+                            <span>No tasks</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DONE -->
+                <div class="task-column" data-column-status="DONE">
+                    <div class="column-header">
+                        <div class="column-title-wrapper">
+                            <span class="status-dot done-dot"></span>
+                            <h3>DONE</h3>
+                        </div>
+
+                        <span class="task-count" th:text="${doneTasks != null ? #lists.size(doneTasks) : 0}">
+                            0
+                        </span>
+                    </div>
+
+                    <div class="task-list">
+                        <article class="task-card completed-task" th:each="task : ${doneTasks != null ? doneTasks : {}}"
+                            th:attr="
+                                data-task-id=${task.id},
+                                data-task-title=${task.title != null ? task.title : ''},
+                                data-task-description=${task.description != null ? task.description : ''},
+                                data-task-status=${task.status != null ? task.status : 'PENDING'}
+                            ">
+                            <div class="task-card-header">
+                                <i class="bi bi-check-circle-fill completed-icon"></i>
                             </div>
 
-                            <span>
-                                <i class="bi bi-clock"></i>
-                                In process
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                    <div
-                            class="empty-column"
-                            th:if="${inProgressTasks == null or #lists.isEmpty(inProgressTasks)}"
-                    >
-                        <i class="bi bi-inbox"></i>
-                        <span>No tasks</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- DONE -->
-            <div class="task-column" data-column-status="DONE">
-
-                <div class="column-header">
-
-                    <div class="column-title-wrapper">
-                        <span class="status-dot done-dot"></span>
-                        <h3>DONE</h3>
-                    </div>
-
-                    <span
-                            class="task-count"
-                            th:text="${doneTasks != null ? #lists.size(doneTasks) : 0}"
-                    >
-                        0
-                    </span>
-
-                </div>
-
-                <div class="task-list">
-
-                    <article
-                            class="task-card completed-task"
-                            th:each="task : ${doneTasks != null ? doneTasks : {}}"
-                            th:attr="
-                            data-task-title=${task != null and task.title != null ? task.title : ''},
-                            data-task-description=${task != null and task.description != null ? task.description : ''}
-                        "
-                    >
-
-                        <div class="task-card-header">
-
-                            <i class="bi bi-check-circle-fill completed-icon"></i>
-
-                        </div>
-
-                        <h4
-                                th:text="${task != null
+                            <h4 th:text="${task != null
                                 and task.title != null
                                 and !#strings.isEmpty(task.title)
                                 ? task.title
-                                : 'Untitled task'}"
-                        >
-                            Untitled task
-                        </h4>
+                                : 'Untitled task'}">
+                                Untitled task
+                            </h4>
 
-                        <p
-                                th:text="${task != null
+                            <p th:text="${task != null
                                 and task.description != null
                                 and !#strings.isEmpty(task.description)
                                 ? task.description
-                                : 'No description provided.'}"
-                        >
-                            No description provided.
-                        </p>
+                                : 'No description provided.'}">
+                                No description provided.
+                            </p>
 
-                        <div class="task-card-footer">
+                            <div class="task-card-footer">
+                                <div class="task-avatar">
+                                    <i class="bi bi-person"></i>
+                                </div>
 
-                            <div class="task-avatar">
-                                <i class="bi bi-person"></i>
+                                <span>
+                                    <i class="bi bi-check2"></i>
+                                    Completed
+                                </span>
                             </div>
+                        </article>
 
-                            <span>
-                                <i class="bi bi-check2"></i>
-                                Completed
-                            </span>
+                        <div class="empty-column" th:if="${doneTasks == null or #lists.isEmpty(doneTasks)}">
+                            <i class="bi bi-inbox"></i>
+                            <span>No tasks</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
+            <div id="noSearchResults" class="no-search-results d-none">
+                <i class="bi bi-search"></i>
+                <h3>No tasks found</h3>
+                <p>Try another search keyword.</p>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true"
+        th:if="${selectedProject != null}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content task-modal">
+                <form th:action="@{/dashboard}" method="post">
+                    <div class="modal-header">
+                        <div>
+                            <span class="modal-label">New task</span>
+
+                            <h2 class="modal-title" id="addTaskModalLabel">Add a task</h2>
                         </div>
 
-                    </article>
-
-                    <div
-                            class="empty-column"
-                            th:if="${doneTasks == null or #lists.isEmpty(doneTasks)}"
-                    >
-                        <i class="bi bi-inbox"></i>
-                        <span>No tasks</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
-                </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="projectId"
+                            th:value="${selectedProject != null ? selectedProject.id : ''}" />
 
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="taskTitle"> Task title </label>
 
-        </section>
+                            <input id="taskTitle" type="text" class="form-control" name="title"
+                                placeholder="Example: Create login page" maxlength="120" required />
+                        </div>
 
-        <div
-                id="noSearchResults"
-                class="no-search-results d-none"
-        >
-            <i class="bi bi-search"></i>
-            <h3>No tasks found</h3>
-            <p>Try another search keyword.</p>
-        </div>
-
-    </main>
-
-</div>
-
-<div
-        class="modal fade"
-        id="addTaskModal"
-        tabindex="-1"
-        aria-labelledby="addTaskModalLabel"
-        aria-hidden="true"
-        th:if="${selectedProject != null}"
->
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content task-modal">
-
-            <form th:action="@{/dashboard}" method="post">
-
-                <div class="modal-header">
-
-                    <div>
-                        <span class="modal-label">New task</span>
-
-                        <h2
-                                class="modal-title"
-                                id="addTaskModalLabel"
-                        >
-                            Add a task
-                        </h2>
-                    </div>
-
-                    <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                    ></button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <input
-                            type="hidden"
-                            name="projectId"
-                            th:value="${selectedProject != null ? selectedProject.id : ''}"
-                    >
-
-                    <div class="mb-3">
-                        <label class="form-label" for="taskTitle">
-                            Task title
-                        </label>
-
-                        <input
-                                id="taskTitle"
-                                type="text"
-                                class="form-control"
-                                name="title"
-                                placeholder="Example: Create login page"
-                                maxlength="120"
-                                required
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="taskDescription">
-                            Description
-                        </label>
-
-                        <textarea
-                                id="taskDescription"
-                                class="form-control"
-                                name="description"
-                                rows="4"
-                                placeholder="Describe the task..."
-                                maxlength="500"
-                        ></textarea>
-                    </div>
-
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="taskStatus">
-                                Status
+                        <div class="mb-3">
+                            <label class="form-label" for="taskDescription">
+                                Description
                             </label>
 
-                            <select
-                                    id="taskStatus"
-                                    class="form-select"
-                                    name="status"
-                                    required
-                            >
+                            <textarea id="taskDescription" class="form-control" name="description" rows="4"
+                                placeholder="Describe the task..." maxlength="500"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="taskStatus"> Status </label>
+
+                                <select id="taskStatus" class="form-select" name="status" required>
+                                    <option value="TO_DO">To do</option>
+                                    <option value="IN_PROGRESS">In process</option>
+                                    <option value="DONE">Done</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="taskPriority">
+                                    Priority
+                                </label>
+
+                                <select id="taskPriority" class="form-select" name="priority" required>
+                                    <option value="LOW">Low</option>
+                                    <option value="MEDIUM" selected>Medium</option>
+                                    <option value="HIGH">High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button type="submit" class="add-task-button">
+                            <i class="bi bi-plus-lg"></i>
+                            Create task
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content task-modal">
+                <form id="editTaskForm">
+                    <div class="modal-header">
+                        <div>
+                            <span class="modal-label">Edit task</span>
+
+                            <h2 class="modal-title" id="editTaskModalLabel">Update task</h2>
+                        </div>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div id="editTaskError" class="alert alert-danger d-none" role="alert"></div>
+
+                        <input type="hidden" id="editTaskId" />
+
+                        <div class="mb-3">
+                            <label class="form-label" for="editTaskTitle">
+                                Task title
+                            </label>
+
+                            <input id="editTaskTitle" type="text" class="form-control" maxlength="120" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="editTaskDescription">
+                                Description
+                            </label>
+
+                            <textarea id="editTaskDescription" class="form-control" rows="4" maxlength="500"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="editTaskStatus"> Status </label>
+
+                            <select id="editTaskStatus" class="form-select" required>
                                 <option value="TO_DO">To do</option>
-                                <option value="IN_PROGRESS">In process</option>
+
+                                <option value="IN_PROGRESS">In progress</option>
+
                                 <option value="DONE">Done</option>
                             </select>
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="taskPriority">
-                                Priority
-                            </label>
-
-                            <select
-                                    id="taskPriority"
-                                    class="form-select"
-                                    name="priority"
-                                    required
-                            >
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM" selected>Medium</option>
-                                <option value="HIGH">High</option>
-                            </select>
-                        </div>
-
                     </div>
 
-                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
 
-                <div class="modal-footer">
+                        <button id="saveTaskButton" type="submit" class="add-task-button">
+                            <span class="button-text">
+                                <i class="bi bi-check-lg"></i>
+                                Save
+                            </span>
 
-                    <button
-                            type="button"
-                            class="btn btn-light"
-                            data-bs-dismiss="modal"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                            type="submit"
-                            class="add-task-button"
-                    >
-                        <i class="bi bi-plus-lg"></i>
-                        Create task
-                    </button>
-
-                </div>
-
-            </form>
-
+                            <span class="button-loading d-none">
+                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                Saving...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/task-board.js}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/task-board.js}"></script>
 </body>
+
 </html>

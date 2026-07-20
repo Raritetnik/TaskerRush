@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Only when page is loaded fully
+
     const searchInput = document.getElementById("taskSearch");
     const kanbanBoard = document.querySelector(".kanban-board");
     const noSearchResults = document.getElementById("noSearchResults");
-
     const sidebar = document.getElementById("projectSidebar");
     const sidebarToggle = document.getElementById("sidebarToggle");
     const sidebarOverlay = document.getElementById("sidebarOverlay");
@@ -84,27 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    function updateColumnCounts() {
-        const taskColumns = document.querySelectorAll(".task-column");
-
-        taskColumns.forEach((column) => {
-            const visibleTasks = column.querySelectorAll(
-                ".task-card:not(.d-none)"
-            );
-
-            const countElement =
-                column.querySelector(".task-count");
-
-            if (countElement) {
-                countElement.textContent =
-                    String(visibleTasks.length);
-            }
-        });
-    }
-
-    // Mode task blocks between section
-
-
     // Add task
     const addTaskBtn = document.querySelector(".add-task-button[type='submit']");
 
@@ -113,9 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken"); // localStorage
-        console.log(token);
         if (!token) {
-            //logoutUser();
+            logoutUser();
             return;
         }
 
@@ -168,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(taskData)
             });
 
-            /*
+            /* JWT check
              * 401: token is missing, invalid, or expired.
              * 403: authenticated user is not allowed.
              */
@@ -208,6 +187,281 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
+    // Edit Modal
+    const editTaskModalElement = document.getElementById("editTaskModal");
+    const editTaskForm = document.getElementById("editTaskForm");
+    const editTaskId = document.getElementById("editTaskId");
+    const editTaskTitle = document.getElementById("editTaskTitle");
+    const editTaskDescription = document.getElementById("editTaskDescription");
+    const editTaskStatus = document.getElementById("editTaskStatus");
+    const editTaskError = document.getElementById("editTaskError");
+    const saveTaskButton = document.getElementById("saveTaskButton");
+    const saveButtonText = saveTaskButton?.querySelector(".button-text");
+    const saveButtonLoading = saveTaskButton?.querySelector(".button-loading");
+
+
+    if (!editTaskModalElement || !editTaskForm) { return; }
+    const editTaskModal = bootstrap.Modal.getOrCreateInstance(editTaskModalElement);
+
+    // Open the edit modal when a task card is clicked.
+    document.addEventListener("click", event => {
+        const taskCard = event.target.closest(".task-card");
+
+        if (!taskCard) {
+            return;
+        }
+
+        /*
+         * Do not open the modal when clicking another
+         * interactive element inside the card.
+         */
+        if (
+            event.target.closest(
+                "button, a, input, select, textarea"
+            )
+        ) {
+            return;
+        }
+
+        clearEditTaskError();
+
+        editTaskId.value =
+            taskCard.dataset.taskId || "";
+
+        editTaskTitle.value =
+            taskCard.dataset.taskTitle || "";
+
+        editTaskDescription.value =
+            taskCard.dataset.taskDescription || "";
+
+        editTaskStatus.value =
+            taskCard.dataset.taskStatus || "PENDING";
+
+        editTaskModal.show();
+    });
+    editTaskForm.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        clearEditTaskError();
+
+        const taskId = editTaskId.value;
+        const title = editTaskTitle.value.trim();
+        const description =
+            editTaskDescription.value.trim();
+
+        const status = editTaskStatus.value;
+
+        if (!taskId) {
+            showEditTaskError("Task ID is missing.");
+            return;
+        }
+
+        if (!title) {
+            showEditTaskError(
+                "Task title is required."
+            );
+
+            editTaskTitle.focus();
+            return;
+        }
+
+        const token =
+            localStorage.getItem("jwtToken") ||
+            sessionStorage.getItem("jwtToken");
+
+        if (!token) {
+            logoutUser(
+                "Your session has expired. Please log in again."
+            );
+
+            return;
+        }
+
+        const requestBody = {
+            title,
+            description,
+            status
+        };
+
+        try {
+            setSaveLoading(true);
+
+            const response = await fetch(
+                `/api/tasks/${encodeURIComponent(taskId)}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                }
+            );
+
+            if (response.status === 401) {
+                logoutUser(
+                    "Your session has expired. Please log in again."
+                );
+
+                return;
+            }
+
+            if (response.status === 403) {
+                logoutUser(
+                    "You are not authorized to update this task."
+                );
+
+                return;
+            }
+
+            if (!response.ok) {
+                const message =
+                    await readErrorMessage(response);
+
+                throw new Error(
+                    message ||
+                    "Unable to update the task."
+                );
+            }
+
+            const updatedTask =
+                await readJsonResponse(response);
+
+            editTaskModal.hide();
+
+            /*
+             * Simplest and safest approach:
+             * reload projects and filtered task lists
+             * from the server.
+             */
+            window.location.reload();
+        } catch (error) {
+            console.error(
+                "Task update failed:",
+                error
+            );
+
+            showEditTaskError(
+                error instanceof Error
+                    ? error.message
+                    : "An unexpected error occurred."
+            );
+        } finally {
+            setSaveLoading(false);
+        }
+    }
+    );
+
+
+    /**
+     *
+     * Methods
+     */
+    function setSaveLoading(isLoading) {
+        if (saveTaskButton) {
+            saveTaskButton.disabled = isLoading;
+        }
+
+        saveButtonText?.classList.toggle(
+            "d-none",
+            isLoading
+        );
+
+        saveButtonLoading?.classList.toggle(
+            "d-none",
+            !isLoading
+        );
+
+        editTaskTitle.readOnly = isLoading;
+        editTaskDescription.readOnly = isLoading;
+        editTaskStatus.disabled = isLoading;
+    }
+
+    function showEditTaskError(message) {
+        if (!editTaskError) {
+            alert(message);
+            return;
+        }
+
+        editTaskError.textContent = message;
+        editTaskError.classList.remove("d-none");
+    }
+
+    function clearEditTaskError() {
+        if (!editTaskError) {
+            return;
+        }
+
+        editTaskError.textContent = "";
+        editTaskError.classList.add("d-none");
+    }
+
+    async function readErrorMessage(response) {
+        const contentType =
+            response.headers.get("content-type") || "";
+
+        try {
+            if (contentType.includes("application/json")) {
+                const body = await response.json();
+
+                return (
+                    body.message ||
+                    body.error ||
+                    body.detail ||
+                    null
+                );
+            }
+
+            return await response.text();
+        } catch (error) {
+            return null;
+        }
+    }
+
+    async function readJsonResponse(response) {
+        if (response.status === 204) {
+            return null;
+        }
+
+        const contentType =
+            response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+            return null;
+        }
+
+        return response.json();
+    }
+
+    function closeAddTaskModal() {
+        const modalElement = document.querySelector("#addTaskModal");
+
+        if (!modalElement || typeof bootstrap === "undefined") {
+            return;
+        }
+
+        const modal =
+            bootstrap.Modal.getInstance(modalElement) ||
+            bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.hide();
+    }
+
+    function resetTaskForm() {
+        const form = document.querySelector("#addTaskForm");
+
+        if (form) {
+            form.reset();
+        }
+
+        clearTaskError();
+    }
 
     function logoutUser(message = null) {
         localStorage.removeItem("jwtToken");
@@ -286,27 +540,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function closeAddTaskModal() {
-        const modalElement = document.querySelector("#addTaskModal");
+    function updateColumnCounts() {
+        const taskColumns = document.querySelectorAll(".task-column");
 
-        if (!modalElement || typeof bootstrap === "undefined") {
-            return;
-        }
+        taskColumns.forEach((column) => {
+            const visibleTasks = column.querySelectorAll(
+                ".task-card:not(.d-none)"
+            );
 
-        const modal =
-            bootstrap.Modal.getInstance(modalElement) ||
-            bootstrap.Modal.getOrCreateInstance(modalElement);
+            const countElement =
+                column.querySelector(".task-count");
 
-        modal.hide();
+            if (countElement) {
+                countElement.textContent =
+                    String(visibleTasks.length);
+            }
+        });
     }
 
-    function resetTaskForm() {
-        const form = document.querySelector("#addTaskForm");
-
-        if (form) {
-            form.reset();
-        }
-
-        clearTaskError();
-    }
 });

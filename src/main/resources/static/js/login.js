@@ -121,18 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             storage.setItem("jwtToken", token);
 
-            if (responseData.expiresAt) {
-                storage.setItem(
-                    "jwtExpiresAt",
-                    responseData.expiresAt
-                );
-            }
-
             window.location.href =
                 responseData.redirectUrl || "/dashboard";
 
         } catch (error) {
-            console.error("Login request failed:", error);
+            console.error("Login request failed:", error);1
 
             showLoginError(
                 error instanceof Error
@@ -258,11 +251,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function clearStoredAuthentication() {
         localStorage.removeItem("jwtToken");
-        localStorage.removeItem("username");
-        localStorage.removeItem("jwtExpiresAt");
-
         sessionStorage.removeItem("jwtToken");
-        sessionStorage.removeItem("username");
-        sessionStorage.removeItem("jwtExpiresAt");
     }
 });
