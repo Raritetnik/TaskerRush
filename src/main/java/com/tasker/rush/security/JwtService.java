@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,13 @@ public class JwtService {
                 .expiration(Date.from(expiry))
                 .signWith(signingKey())
                 .compact();
+    }
+
+    public String generateToken(Authentication authentication) {
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        return generateToken(userDetails);
     }
 
     public String extractUsername(String token) {

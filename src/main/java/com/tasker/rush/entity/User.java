@@ -21,6 +21,10 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true) // Логин должен быть уникальным
     private String username;
 
+    @Setter
+    @Column(nullable = false)
+    public String full_name;
+
     @Getter
     @Setter
     @Column(nullable = false, unique = true)

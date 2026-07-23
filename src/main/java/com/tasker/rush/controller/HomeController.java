@@ -5,6 +5,8 @@ import com.tasker.rush.entity.Project;
 import com.tasker.rush.entity.User;
 import com.tasker.rush.service.ProjectService;
 import com.tasker.rush.service.UserService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -42,6 +44,7 @@ public class HomeController {
         model.addAttribute("todoTasks", userData.todoTasks);
         model.addAttribute("inProgressTasks", userData.inProgressTasks);
         model.addAttribute("doneTasks", userData.doneTasks);
+        model.addAttribute("user", user);
 
         model.addAttribute("username", currentUser.getUsername());
 

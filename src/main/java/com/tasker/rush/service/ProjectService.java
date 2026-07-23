@@ -1,18 +1,20 @@
 package com.tasker.rush.service;
 
-import com.tasker.rush.dto.UserProjects;
+import com.tasker.rush.dto.*;
 import com.tasker.rush.entity.Project;
 import com.tasker.rush.entity.Task;
 import com.tasker.rush.entity.TaskStatus;
 import com.tasker.rush.entity.User;
 import com.tasker.rush.repository.ProjectRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 
 @Service
 public class ProjectService {
@@ -76,5 +78,63 @@ public class ProjectService {
         projects.inProgressTasks = inProgressTasks;
         projects.doneTasks= doneTasks;
         return projects;
+    }
+
+
+    @Transactional
+    public Project createProject(User user, CreateProjectRequest request) {
+        Project project = new Project();
+
+        if (request.title() == null || request.title().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Project title is required"
+            );
+        }
+        project.setTitle(request.title());
+        project.setDescription(request.description());
+        project.setUser(user);
+
+        return projectRepository.save(project);
+    }
+
+    @Transactional
+    public Project updateProject(
+            User user,
+            Long projectId,
+            UpdateProjectRequest request
+    ) {
+
+        Project project = projectRepository
+                .findByIdAndUser(projectId, user)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project not found"
+                        )
+                );
+
+        project.setTitle(request.title());
+        project.setDescription(request.description());
+
+        return projectRepository.save(project);
+    }
+
+    @Transactional
+    public void deleteProject(
+            User user,
+            Long projectId
+    ) {
+
+        Project project = projectRepository
+                .findByIdAndUser(projectId, user)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project not found"
+                        )
+                );
+
+        projectRepository.delete(project);
     }
 }

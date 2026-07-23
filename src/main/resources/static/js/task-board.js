@@ -186,6 +186,113 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Add Project
+    const addProjectBtn = document.querySelector(".add-project-button[type='submit']");
+
+    addProjectBtn.addEventListener("click", async function (event) {
+        event.preventDefault();
+
+        hideProjectError();
+
+        const token =
+            localStorage.getItem("jwtToken") ||
+            sessionStorage.getItem("jwtToken");
+
+        if (!token) {
+            showProjectError(
+                "Your session has expired. Please log in again."
+            );
+            return;
+        }
+
+        const name = document
+            .querySelector("#projectName")
+            ?.value
+            .trim();
+
+        const description = document
+            .querySelector("#projectDescription")
+            ?.value
+            .trim();
+
+        if (!name) {
+            showProjectError("Project name is required.");
+            return;
+        }
+
+        if (!description) {
+            showProjectError("Project description is required.");
+            return;
+        }
+
+        const projectData = {
+            title: name,
+            description: description
+        };
+
+        try {
+            setProjectButtonLoading(true);
+
+            const response = await fetch("/api/projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(projectData)
+            });
+
+            if (response.status === 401) {
+                showProjectError(
+                    "Your session has expired. Please log in again."
+                );
+                return;
+            }
+
+            if (response.status === 403) {
+                showProjectError(
+                    "You are not authorized to create a project."
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                const errorMessage = await getErrorMessage(response);
+
+                throw new Error(
+                    errorMessage || "Unable to create the project."
+                );
+            }
+
+            const createdProject = await response.json();
+
+            closeAddProjectModal();
+            resetProjectForm();
+
+            /*
+             * Redirect directly to the new project when the API returns its ID.
+             */
+            if (createdProject && createdProject.id) {
+                window.location.href =
+                    "/dashboard/" +
+                    encodeURIComponent(createdProject.id);
+
+                return;
+            }
+
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Create project error:", error);
+
+            showProjectError(
+                error.message || "An unexpected error occurred."
+            );
+        } finally {
+            setProjectButtonLoading(false);
+        }
+    });
 
     // Edit Modal
     const editTaskModalElement = document.getElementById("editTaskModal");
@@ -239,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         editTaskModal.show();
     });
+
     editTaskForm.addEventListener("submit", async event => {
         event.preventDefault();
 
@@ -270,9 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.getItem("jwtToken");
 
         if (!token) {
-            logoutUser(
-                "Your session has expired. Please log in again."
-            );
+            logoutUser("Your session has expired. Please log in again.");
 
             return;
         }
@@ -305,17 +411,13 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             if (response.status === 401) {
-                logoutUser(
-                    "Your session has expired. Please log in again."
-                );
+                logoutUser("Your session has expired. Please log in again.");
 
                 return;
             }
 
             if (response.status === 403) {
-                logoutUser(
-                    "You are not authorized to update this task."
-                );
+                logoutUser("You are not authorized to update this task.");
 
                 return;
             }
@@ -558,4 +660,70 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function showProjectError(message) {
+        const errorElement = document.querySelector("#addProjectError");
+
+        if (!errorElement) {
+            return;
+        }
+
+        errorElement.textContent = message;
+        errorElement.classList.remove("d-none");
+    }
+
+    function hideProjectError() {
+        const errorElement = document.querySelector("#addProjectError");
+
+        if (!errorElement) {
+            return;
+        }
+
+        errorElement.textContent = "";
+        errorElement.classList.add("d-none");
+    }
+
+    function setProjectButtonLoading(isLoading) {
+        const button = document.querySelector("#createProjectButton");
+
+        if (!button) {
+            return;
+        }
+
+        const text = button.querySelector(".button-text");
+        const loading = button.querySelector(".button-loading");
+
+        button.disabled = isLoading;
+
+        if (text) {
+            text.classList.toggle("d-none", isLoading);
+        }
+
+        if (loading) {
+            loading.classList.toggle("d-none", !isLoading);
+        }
+    }
+
+    function resetProjectForm() {
+        const form = document.querySelector("#addProjectForm");
+
+        if (form) {
+            form.reset();
+        }
+
+        hideProjectError();
+    }
+
+    function closeAddProjectModal() {
+        const modalElement = document.querySelector("#addProjectModal");
+
+        if (!modalElement) {
+            return;
+        }
+
+        const modal = bootstrap.Modal.getInstance(modalElement);
+
+        if (modal) {
+            modal.hide();
+        }
+    }
 });

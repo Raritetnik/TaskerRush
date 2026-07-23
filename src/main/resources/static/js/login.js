@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttonLoading =
         loginButton?.querySelector(".button-loading");
 
+    const alertLoginMessage =
+        document.querySelector(".login-card > .alert-error");
+
     const usernameError =
         document.getElementById("usernameError");
 
@@ -183,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loginMessage.textContent = "";
             loginMessage.className = "login-message";
         }
+        alertLoginMessage.style.display = 'none';
     }
 
     function showLoginError(message) {
@@ -192,8 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 "login-message login-message-error";
             return;
         }
-
-        alert(message);
+        if (alertLoginMessage) {
+            alertLoginMessage.querySelector('span').textContent = message;
+            alertLoginMessage.style.display = 'block';
+        }
     }
 
     function setLoadingState(isLoading) {

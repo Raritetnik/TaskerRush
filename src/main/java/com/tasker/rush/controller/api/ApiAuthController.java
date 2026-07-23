@@ -3,7 +3,10 @@ package com.tasker.rush.controller.api;
 import com.tasker.rush.dto.LoginRequest;
 import com.tasker.rush.dto.LoginResponse;
 import com.tasker.rush.security.JwtService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -41,7 +44,7 @@ public class ApiAuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -50,6 +53,16 @@ public class ApiAuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtService.generateToken(userDetails);
             long expiresInSeconds = jwtService.getExpirationMinutes() * 60;
+
+            // Server-side gate for page routes (e.g. /dashboard)
+            ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", token)
+                    .httpOnly(true)
+                    .secure(true)          // requires HTTPS — see note below for local dev
+                    .path("/")
+                    .maxAge(expiresInSeconds)
+                    .sameSite("Strict")
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
             return ResponseEntity.ok(new LoginResponse(token, userDetails.getUsername(), expiresInSeconds));
 

@@ -62,10 +62,43 @@
                 </div>
             </nav>
 
-            <button class="new-project-button" type="button">
+            <button class="new-project-button" data-bs-toggle="modal" data-bs-target="#addProjectModal" type="button">
                 <i class="bi bi-plus-lg"></i>
                 New project
             </button>
+
+            <div class="sidebar-footer">
+
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        JD
+                    </div>
+
+                    <div class="user-info">
+                        <div class="user-name"
+                            th:text="${user.full_name}">
+                            User user
+                        </div>
+
+                        <div class="user-email"
+                             th:text="${user.email}">
+                            user@example.com
+                        </div>
+                    </div>
+
+                    <form th:action="@{/logout}" method="post">
+                    <button
+                            class="logout-button"
+                            title="Log out"
+                            type="submit"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                    </form>
+                </div>
+
+            </div>
+
         </aside>
 
         <main class="board-main">
@@ -335,7 +368,7 @@
     <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true"
         th:if="${selectedProject != null}">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content task-modal">
+            <div class="modal-content tasker-modal">
                 <form th:action="@{/dashboard}" method="post">
                     <div class="modal-header">
                         <div>
@@ -409,7 +442,7 @@
 
     <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content task-modal">
+            <div class="modal-content tasker-modal">
                 <form id="editTaskForm">
                     <div class="modal-header">
                         <div>
@@ -472,6 +505,80 @@
                             </span>
                         </button>
                     </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content tasker-modal">
+
+                <form th:action="@{/dashboard}" method="post">
+
+                    <div class="modal-header">
+                        <div>
+                            <span class="modal-label">New project</span>
+
+                            <h2 class="modal-title" id="addProjectModalLabel">
+                                Create a project
+                            </h2>
+                        </div>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="projectName">
+                                Project name
+                            </label>
+
+                            <input id="projectName"
+                                   type="text"
+                                   class="form-control"
+                                   name="name"
+                                   placeholder="Example: Task management app"
+                                   maxlength="120"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="projectDescription">
+                                Description
+                            </label>
+
+                            <textarea id="projectDescription"
+                                      class="form-control"
+                                      name="description"
+                                      rows="5"
+                                      placeholder="Describe the project..."
+                                      maxlength="1000"
+                                      required></textarea>
+                        </div>
+
+                        <div id="addProjectError" class="alert alert-danger d-none" role="alert"></div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-light"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button type='submit' class="add-project-button">
+                            <i class="bi bi-plus-lg"></i>
+                            Create project
+                        </button>
+                    </div>
+
                 </form>
             </div>
         </div>

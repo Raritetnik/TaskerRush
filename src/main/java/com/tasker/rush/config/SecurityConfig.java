@@ -1,6 +1,8 @@
 package com.tasker.rush.config;
 
 import com.tasker.rush.security.JwtAuthenticationFilter;
+import com.tasker.rush.security.JwtCookieAuthenticationFilter;
+import com.tasker.rush.security.JwtService;
 import com.tasker.rush.security.RestAuthenticationEntryPoint;
 import com.tasker.rush.service.UserService;
 import org.springframework.context.annotation.Bean;
@@ -25,13 +27,21 @@ public class SecurityConfig {
     private final UserService userService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final JwtService jwtService;
+    private final JwtCookieAuthenticationFilter jwtCookieAuthenticationFilter;
 
-    public SecurityConfig(UserService userService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter,
-                          RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
+    public SecurityConfig(
+            UserService userService,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtCookieAuthenticationFilter jwtCookieAuthenticationFilter,
+            RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+            JwtService jwtService
+    ) {
         this.userService = userService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtCookieAuthenticationFilter = jwtCookieAuthenticationFilter;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.jwtService = jwtService;
     }
 
     // Required so Spring Security's session registry is notified when
@@ -105,6 +115,7 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/css/**", "/js/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(jwtCookieAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")

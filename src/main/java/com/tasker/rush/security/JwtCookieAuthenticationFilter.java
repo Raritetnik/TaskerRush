@@ -1,19 +1,22 @@
 package com.tasker.rush.security;
 
-import com.tasker.rush.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Arrays;
+
+import com.tasker.rush.service.UserService;
 
 @Component
-public class JwtAuthenticationFilter extends AbstractJwtAuthenticationFilter {
+public class JwtCookieAuthenticationFilter extends AbstractJwtAuthenticationFilter {
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserService userService) {
+    public JwtCookieAuthenticationFilter(JwtService jwtService, UserService userService) {
         super(jwtService, userService);
     }
 
@@ -22,14 +25,17 @@ public class JwtAuthenticationFilter extends AbstractJwtAuthenticationFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7);
-        authenticateFromToken(token, request);
+        Arrays.stream(cookies)
+                .filter(c -> "JWT_TOKEN".equals(c.getName()))
+                .findFirst()
+                .ifPresent(cookie -> authenticateFromToken(cookie.getValue(), request));
+
         filterChain.doFilter(request, response);
     }
 }
