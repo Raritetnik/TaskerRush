@@ -1,16 +1,29 @@
-# Spring Boot JWT Authentication API
+# TaskerRush - Spring Boot (Final Project)
 
 ## Overview
 
-This project is a REST API built with **Spring Boot 4.1** and **Java 21**. It demonstrates a basic backend architecture with JWT authentication, database integration, and user management endpoints.
+Проект TaskerRush — это веб-платформа для управления проектами и задачами, предназначенная для организации рабочего процесса как отдельных пользователей, так и небольших команд.
+
+Пользователь может зарегистрировать новый аккаунт, после чего выполнить вход в систему, используя свои учетные данные. После успешной авторизации ему становится доступен личный рабочий кабинет.
+
+Основной функционал платформы включает:
+
+Регистрация и авторизация пользователей с безопасным хранением паролей и системой аутентификации.
+Создание проектов, позволяющее разделять задачи по различным направлениям работы.
+Управление проектами, включая просмотр списка проектов и выбор активного проекта.
+Создание задач внутри каждого проекта с указанием названия, описания, приоритета и текущего статуса.
+Изменение статуса задач (например: To Do, In Progress, Done), что позволяет отслеживать ход выполнения работы.
+Редактирование и удаление задач для поддержания актуальности информации.
+Безопасный доступ к данным, при котором каждый пользователь имеет доступ только к собственным проектам и задачам.
 
 ## Features
 
 * Spring Boot 4.1
 * Java 21
 * RESTful API
-* JWT (JSON Web Token) authentication
+* JWT (JSON Web Token) authentication (API requests)
 * Database integration
+* Docker
 * User authentication and authorization
 * Basic user management controllers
 
@@ -18,7 +31,7 @@ This project is a REST API built with **Spring Boot 4.1** and **Java 21**. It de
 
 * Java 21
 * Spring Boot 4.1
-* Spring Security
+* Spring Security (Session on pages access)
 * Spring Data JPA
 * JWT
 * Maven
@@ -35,52 +48,12 @@ This project is a REST API built with **Spring Boot 4.1** and **Java 21**. It de
 
 1. Clone the repository.
 2. Configure the database connection in `application.properties`.
-3. Build the project:
+3. Build and Run the project with Docker Composer:
 
 ```bash
-mvn clean install
+docker composer up --build
 ```
-
-4. Run the application:
-
-```bash
-mvn spring-boot:run
-```
-
-## Implemented Functionality
-
-### Database
-
-* Created project database
-* Created user table
-* Configured JPA entity and repository
-
-### Authentication
-
-* User login endpoint
-* Username/password validation
-* JWT token generation
-* JWT token validation for protected endpoints
-* Stateless authentication using Spring Security
-
-### REST Controllers
-
-Basic user interaction endpoints have been implemented, including:
-
-* User authentication
-* Protected API endpoints
-* User-related operations
-
-## Future Improvements
-
-* User registration
-* Refresh tokens
-* Role-based authorization
-* Password encryption migration (if required)
-* Exception handling
-* API documentation with OpenAPI/Swagger
-* Unit and integration tests
 
 ## Author
 
-Created as a learning project using Spring Boot 4.1 and Java 21.
+Created by Mykhaylo Kuzmin
