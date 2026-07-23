@@ -33,7 +33,7 @@ public class HomeController {
     }
 
     @GetMapping({"/dashboard", "/dashboard/{id}"})
-    public String project(
+    public String dashboard(
             @PathVariable(required = false) Long id,
             @AuthenticationPrincipal UserDetails currentUser,
             Model model) {
